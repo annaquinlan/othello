@@ -34,24 +34,95 @@ class HumanPlayer:
             return None
         else:
             return move
-'''
+
+# This is a simple heuristic that we're keeping around to play with.
+# Playing well = having the most pieces on the board, placed such that you
+### can capture even more and won't get captured.
+
+# If player is black, they want this heuristic value to be as small as possible.
+# If player is white, they want this heuristic value to be as large as possible.
+def simpleheuristic(board):
+    return board.scores()[1] - board.scores()[0]
+
+# This is a much better heuristic. By Sophia Davis and Anna Quinlan.   
+# Playing well = having more pieces, even better on the edge, and best at the
+# corners.
+# Black pieces in the center are worth -1, on the edge -2, and in a corner, -3.
+# White pieces are worth the same, respectively, but positive.
+# Black wants the smallest utility, and white wants the largest utility.
 def heuristic(board):
-    # This very silly heuristic just adds up all the 1s, -1s, and 0s
-    # stored on the othello board.
     sum = 0
     for i in range(1,othelloBoard.size-1):
         for j in range(1,othelloBoard.size-1):
-            sum += board.array[i][j]
-    return sum'''
+            # If in corner, multiply by 3
+            if i in [1, othelloBoard.size-1] and j in [1, othelloBoard.size-1]:
+                sum += 3*(board.array[i][j])
+            # If on edge, multiply by 2
+            elif i in [1, othelloBoard.size-1] or j in [1, othelloBoard.size-1]:
+                sum += 2*(board.array[i][j])
+            # Otherwise, worth 1
+            else:
+                sum += board.array[i][j]
+    return sum
+    
+'''
+# The different players use the heuristic in different ways 
+# if black, playerMax = min
+# if white, playerMax = max
+def playerMax(color, num_list):
+    if color == "black":
+        return min(num_list)
+    if color == "white":
+        return max(num_list)
 
-# Playing well = having the most pieces on the board, placed such that you
-### can capture even more and won't get captured.
-# We're relaxing the restriction of where a player's pieces should be placed.
+def playerMin(color, num_list):
+    if color == "black":
+        return max(num_list)
+    if color == "white":
+        return min(num_list)
+'''
+## problems -- it needs to know which path to pick based on the value
+## 
+def minimax(board, color, plies):
+    moves = {}
+    for move in board._legalMoves(color):
+        i = move[0]
+        j = move[1]
+        moves[minVal(board.makeMove(i,j,color), color, plies, 0)] = move
+    
+    total_min = min(moves.keys()) #playerMin(color, moves.keys())
+    print "******* returning from minimax"
+    return moves[total_min] #minVal(board, color, plies, 0) # argmax
+    
+def minVal(board, color, plies, limit):
+    if len(board._legalMoves(color)) == 0 or limit == plies:
+        print "Hit limit in minVal"
+        return heuristic(board)
+    val = 10000
+    argmax = None
+    for move in board._legalMoves(color):
+        i = move[0]
+        j = move[1]
+        val = min(val, maxVal(board.makeMove(i,j,color), color, plies, limit + 1)) # playerMin(color, [val, maxVal(board.makeMove(i,j,color), color, plies, limit + 1)])
+        print "-----Inside  minVal"
+        print move
+        print val
+    return val
 
-# If player is black, they want this heuristic value to be as large as possible.
-# If player is white, they want this heuristic value to be as small as possible.
-def heuristic(board):
-    return board.scores()[0] - board.scores()[1]
+def maxVal(board, color, plies, limit):
+    if len(board._legalMoves(color)) == 0 or limit == plies:
+        print "Hit limit in maxVal"
+        return heuristic(board)
+    val = -10000
+    argmax = None
+    for move in board._legalMoves(color):
+        i = move[0]
+        j = move[1]
+        val = min(val, minVal(board.makeMove(i,j,color), color, plies, limit + 1)) #playerMax(color, [val, minVal(board.makeMove(i,j,color), color, plies, limit + 1)])
+        print "+++++Inside  maxVal"
+        print move
+        print val
+    return val
     
 
 class ComputerPlayer:
@@ -65,10 +136,30 @@ class ComputerPlayer:
     def chooseMove(self,board):
         '''This very silly player just returns the first legal move
         that it finds.'''
+        print "MINIMAX"
+        best_move = minimax(board, self.color, self.plies)
+        i = best_move[0]
+        j = best_move[1]
+        bcopy = board.makeMove(i,j,self.color)
+        if bcopy:
+            print 'Heuristic value = ',self.heuristic(bcopy)
+            return (i,j)
+        '''
+        for move in board._legalMoves(self.color):
+            print move
+            i = move[0]
+            j = move[1]
+            movemade = board.makeMove(i, j, self.color)
+            print "HEURISTIC ON MOVEMADE"
+            print heuristic(movemade)
+        
         for i in range(1,othelloBoard.size-1):
             for j in range(1,othelloBoard.size-1):
                 bcopy = board.makeMove(i,j,self.color)
                 if bcopy:
                     print 'Heuristic value = ',self.heuristic(bcopy)
                     return (i,j)
+        '''
+        
+        
         return None
