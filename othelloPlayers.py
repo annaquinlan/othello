@@ -85,43 +85,41 @@ def playerMin(color, num_list):
 ## 
 def minimax(board, color, plies):
     moves = {}
+
     for move in board._legalMoves(color):
         i = move[0]
         j = move[1]
-        moves[minVal(board.makeMove(i,j,color), color, plies, 0)] = move
-    
-    total_min = min(moves.keys()) #playerMin(color, moves.keys())
-    print "******* returning from minimax"
-    return moves[total_min] #minVal(board, color, plies, 0) # argmax
+        if color == -1:
+            moves[minVal(board.makeMove(i,j,color), color, plies, 0)] = move
+        elif color == 1:
+            moves[maxVal(board.makeMove(i,j,color), color, plies, 0)] = move
+    if  len(moves) == 0:
+        return None
+    if color == -1:
+        optimal = min(moves.keys()) #playerMin(color, moves.keys())
+    elif color == 1:
+        optimal = max(moves.keys())
+   
+    return moves[optimal] #minVal(board, color, plies, 0) # argmax
     
 def minVal(board, color, plies, limit):
     if len(board._legalMoves(color)) == 0 or limit == plies:
-        print "Hit limit in minVal"
         return heuristic(board)
     val = 10000
-    argmax = None
     for move in board._legalMoves(color):
         i = move[0]
         j = move[1]
         val = min(val, maxVal(board.makeMove(i,j,color), color, plies, limit + 1)) # playerMin(color, [val, maxVal(board.makeMove(i,j,color), color, plies, limit + 1)])
-        print "-----Inside  minVal"
-        print move
-        print val
     return val
 
 def maxVal(board, color, plies, limit):
     if len(board._legalMoves(color)) == 0 or limit == plies:
-        print "Hit limit in maxVal"
         return heuristic(board)
     val = -10000
-    argmax = None
     for move in board._legalMoves(color):
         i = move[0]
         j = move[1]
         val = min(val, minVal(board.makeMove(i,j,color), color, plies, limit + 1)) #playerMax(color, [val, minVal(board.makeMove(i,j,color), color, plies, limit + 1)])
-        print "+++++Inside  maxVal"
-        print move
-        print val
     return val
     
 
@@ -136,8 +134,9 @@ class ComputerPlayer:
     def chooseMove(self,board):
         '''This very silly player just returns the first legal move
         that it finds.'''
-        print "MINIMAX"
         best_move = minimax(board, self.color, self.plies)
+        if best_move == None:
+            return None
         i = best_move[0]
         j = best_move[1]
         bcopy = board.makeMove(i,j,self.color)
@@ -162,4 +161,4 @@ class ComputerPlayer:
         '''
         
         
-        return None
+        #return None
