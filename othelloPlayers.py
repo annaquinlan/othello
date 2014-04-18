@@ -65,61 +65,50 @@ def heuristic(board):
                 sum += board.array[i][j]
     return sum
     
-'''
-# The different players use the heuristic in different ways 
-# if black, playerMax = min
-# if white, playerMax = max
-def playerMax(color, num_list):
-    if color == "black":
-        return min(num_list)
-    if color == "white":
-        return max(num_list)
-
-def playerMin(color, num_list):
-    if color == "black":
-        return max(num_list)
-    if color == "white":
-        return min(num_list)
-'''
-## problems -- it needs to know which path to pick based on the value
-## 
 def minimax(board, color, plies):
     moves = {}
-
+    
+    print "Starting minimax, legal moves are: " + str(board._legalMoves(color))
     for move in board._legalMoves(color):
         i = move[0]
         j = move[1]
         if color == -1:
-            moves[minVal(board.makeMove(i,j,color), color, plies, 0)] = move
+            moves[maxVal(board.makeMove(i,j,color), color, plies, 1)] = move
         elif color == 1:
-            moves[maxVal(board.makeMove(i,j,color), color, plies, 0)] = move
+            moves[minVal(board.makeMove(i,j,color), color, plies, 1)] = move
     if  len(moves) == 0:
         return None
     if color == -1:
-        optimal = min(moves.keys()) #playerMin(color, moves.keys())
+        optimal = min(moves.keys()) 
     elif color == 1:
         optimal = max(moves.keys())
-   
-    return moves[optimal] #minVal(board, color, plies, 0) # argmax
+    print "***Returning from minimax, optimal is: " + str(optimal) + "***"
+    return moves[optimal] 
     
 def minVal(board, color, plies, limit):
+    print "Starting minVal"
     if len(board._legalMoves(color)) == 0 or limit == plies:
+        print "minVal -- board's value is " + str(heuristic(board))
         return heuristic(board)
     val = 10000
     for move in board._legalMoves(color):
         i = move[0]
         j = move[1]
-        val = min(val, maxVal(board.makeMove(i,j,color), color, plies, limit + 1)) # playerMin(color, [val, maxVal(board.makeMove(i,j,color), color, plies, limit + 1)])
+        val = min(val, maxVal(board.makeMove(i,j,color), color, plies, limit + 1)) 
+    print " "*limit + str(val) + " - from minVal"
     return val
 
 def maxVal(board, color, plies, limit):
+    print "Starting maxVal"
     if len(board._legalMoves(color)) == 0 or limit == plies:
+        print "maxVal -- board's value is " + str(heuristic(board))
         return heuristic(board)
     val = -10000
     for move in board._legalMoves(color):
         i = move[0]
         j = move[1]
-        val = min(val, minVal(board.makeMove(i,j,color), color, plies, limit + 1)) #playerMax(color, [val, minVal(board.makeMove(i,j,color), color, plies, limit + 1)])
+        val = max(val, minVal(board.makeMove(i,j,color), color, plies, limit + 1)) 
+    print " "*limit + str(val) + " - from maxVal"
     return val
     
 
@@ -132,8 +121,6 @@ class ComputerPlayer:
         self.plies = plies
 
     def chooseMove(self,board):
-        '''This very silly player just returns the first legal move
-        that it finds.'''
         best_move = minimax(board, self.color, self.plies)
         if best_move == None:
             return None
@@ -141,24 +128,7 @@ class ComputerPlayer:
         j = best_move[1]
         bcopy = board.makeMove(i,j,self.color)
         if bcopy:
-            print 'Heuristic value = ',self.heuristic(bcopy)
+            #print 'Heuristic value = ',self.heuristic(bcopy)
             return (i,j)
-        '''
-        for move in board._legalMoves(self.color):
-            print move
-            i = move[0]
-            j = move[1]
-            movemade = board.makeMove(i, j, self.color)
-            print "HEURISTIC ON MOVEMADE"
-            print heuristic(movemade)
-        
-        for i in range(1,othelloBoard.size-1):
-            for j in range(1,othelloBoard.size-1):
-                bcopy = board.makeMove(i,j,self.color)
-                if bcopy:
-                    print 'Heuristic value = ',self.heuristic(bcopy)
-                    return (i,j)
-        '''
-        
-        
-        #return None
+
+
