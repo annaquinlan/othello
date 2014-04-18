@@ -55,25 +55,35 @@ def heuristic(board):
             else:
                 sum += board.array[i][j]
     return sum
-    
+
+# An implementation of the minimax algorithm
 def minimax(board, color, plies):
-    moves = {}
+    moves = {} # {utility : move} -- keep track of possible next moves and their utilities
     
     for move in board._legalMoves(color):
         i = move[0]
         j = move[1]
+        
+        # Black wants the "opposite" of the traditional minimax optimal values (because of our heuristic)
         if color == -1:
             moves[maxVal(board.makeMove(i,j,color), color, plies, 1)] = move
+        
+        # White wants traditional minimax optimal values
         elif color == 1:
             moves[minVal(board.makeMove(i,j,color), color, plies, 1)] = move
+    
+    # no moves -- pass
     if  len(moves) == 0:
         return None
+        
     if color == -1:
         optimal = min(moves.keys()) 
     elif color == 1:
         optimal = max(moves.keys())
+        
     return moves[optimal] 
-    
+
+# Recursive helper function for minimax -- for "min" nodes of game tree
 def minVal(board, color, plies, limit):
     if len(board._legalMoves(color)) == 0 or limit == plies:
         return heuristic(board)
@@ -84,6 +94,7 @@ def minVal(board, color, plies, limit):
         val = min(val, maxVal(board.makeMove(i,j,color), color, plies, limit + 1)) 
     return val
 
+# Recursive helper function for minimax -- for "max" nodes of game tree
 def maxVal(board, color, plies, limit):
     if len(board._legalMoves(color)) == 0 or limit == plies:
         return heuristic(board)
