@@ -35,15 +35,6 @@ class HumanPlayer:
         else:
             return move
 
-# This is a simple heuristic that we're keeping around to play with.
-# Playing well = having the most pieces on the board, placed such that you
-### can capture even more and won't get captured.
-
-# If player is black, they want this heuristic value to be as small as possible.
-# If player is white, they want this heuristic value to be as large as possible.
-def simpleheuristic(board):
-    return board.scores()[1] - board.scores()[0]
-
 # This is a much better heuristic. By Sophia Davis and Anna Quinlan.   
 # Playing well = having more pieces, even better on the edge, and best at the
 # corners.
@@ -68,7 +59,6 @@ def heuristic(board):
 def minimax(board, color, plies):
     moves = {}
     
-    print "Starting minimax, legal moves are: " + str(board._legalMoves(color))
     for move in board._legalMoves(color):
         i = move[0]
         j = move[1]
@@ -82,33 +72,26 @@ def minimax(board, color, plies):
         optimal = min(moves.keys()) 
     elif color == 1:
         optimal = max(moves.keys())
-    print "***Returning from minimax, optimal is: " + str(optimal) + "***"
     return moves[optimal] 
     
 def minVal(board, color, plies, limit):
-    print "Starting minVal"
     if len(board._legalMoves(color)) == 0 or limit == plies:
-        print "minVal -- board's value is " + str(heuristic(board))
         return heuristic(board)
     val = 10000
     for move in board._legalMoves(color):
         i = move[0]
         j = move[1]
         val = min(val, maxVal(board.makeMove(i,j,color), color, plies, limit + 1)) 
-    print " "*limit + str(val) + " - from minVal"
     return val
 
 def maxVal(board, color, plies, limit):
-    print "Starting maxVal"
     if len(board._legalMoves(color)) == 0 or limit == plies:
-        print "maxVal -- board's value is " + str(heuristic(board))
         return heuristic(board)
     val = -10000
     for move in board._legalMoves(color):
         i = move[0]
         j = move[1]
         val = max(val, minVal(board.makeMove(i,j,color), color, plies, limit + 1)) 
-    print " "*limit + str(val) + " - from maxVal"
     return val
     
 
@@ -128,7 +111,6 @@ class ComputerPlayer:
         j = best_move[1]
         bcopy = board.makeMove(i,j,self.color)
         if bcopy:
-            #print 'Heuristic value = ',self.heuristic(bcopy)
             return (i,j)
 
 
