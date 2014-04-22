@@ -115,33 +115,26 @@ def alphabeta(board, color, plies):
     
     alpha = -100000
     beta = 100000
-
-    
+  
     moves = {} # {utility : move} -- keep track of possible next moves and their utilities
     
     # no pruning can occur between highest max node and highest min node 
     #  (might exclude highest value)
     for move in board._legalMoves(color):
-        print
-        print "Starting next highest min node"
         i = move[0]
         j = move[1]
         
         # Black wants the "opposite" of the traditional minimax optimal values (because of our heuristic)
         if color == -1:
             val = maxValAB(board.makeMove(i,j,color), alpha, beta, color, plies, 1)
-            if val <= alpha:
-                print str(val) + " - from ROOT minVal, val < alpha *********"
-                #return move # val
+            # We can't prune here, but we should update beta
             beta = min(beta, val)
             moves[val] = move
         
         # White wants traditional minimax optimal values
         elif color == 1:
             val = minValAB(board.makeMove(i,j,color), alpha, beta, color, plies, 1)
-            if val >= beta:
-                print str(val) + " - from ROOT maxVal, val > beta *********"
-                #return move # val
+            # We can't prune here, but we should update alpha
             alpha = max(alpha, val)
             moves[val] = move
     
@@ -154,50 +147,45 @@ def alphabeta(board, color, plies):
     elif color == 1:
         optimal = max(moves.keys())
         
-    print "Done with recursion, here are max-node choices: " + str(moves.keys())
-    print "Choosing " + str(optimal) + " which is " + str(moves[optimal])
-        
     return moves[optimal] 
 
 
-# Recursive helper function for minimax -- for "min" nodes of game tree
+# Recursive helper function for alphabeta minimax -- for "min" nodes of game tree
 def minValAB(board, alpha, beta, color, plies, limit):
-
-    print "Starting minVal" + " " + str(alpha) + " " + str(beta)
     
     if len(board._legalMoves(color)) == 0 or limit == plies:
-        print "  "*limit + "minVal -- board's value is " + str(heuristic(board))
         return heuristic(board)
     val = 10000
     for move in board._legalMoves(color):
         i = move[0]
         j = move[1]
         val = min(val, maxValAB(board.makeMove(i,j,color), alpha, beta, color, plies, limit + 1)) 
+        
+        # Stop recursion if optimal value has already been found
         if val <= alpha:
-            print "  "*limit + str(val) + " - from minVal, val < alpha"
             return val
+        
+        # Update beta
         beta = min(beta, val)
-    print "  "*limit + str(val) + " - from minVal"
     return val
 
-# Recursive helper function for minimax -- for "max" nodes of game tree
+# Recursive helper function for alphabeta minimax -- for "max" nodes of game tree
 def maxValAB(board, alpha, beta, color, plies, limit):
     
-    print "Starting maxVal"  + " " + str(alpha) + " " + str(beta)
-    
     if len(board._legalMoves(color)) == 0 or limit == plies:
-        print "  "*limit + "maxVal -- board's value is " + str(heuristic(board))
         return heuristic(board)
     val = -10000
     for move in board._legalMoves(color):
         i = move[0]
         j = move[1]
         val = max(val, minValAB(board.makeMove(i,j,color), alpha, beta, color, plies, limit + 1)) 
+        
+        # Stop recursion if optimal value has been found
         if val >= beta:
-            print "  "*limit + str(val) + " - from maxVal, val > beta"
             return val
+        
+        # Update alpha
         alpha = max(alpha, val)
-    print "  "*limit + str(val) + " - from maxVal"
     return val
     
 
