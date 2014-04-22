@@ -1,3 +1,6 @@
+# Sophia Davis and Anna Quinlan
+# Implementations of minimax and alpha-beta pruning.
+
 import othelloBoard
 
 '''You should modify the chooseMove code for the ComputerPlayer
@@ -43,13 +46,13 @@ class HumanPlayer:
 # Black wants the smallest utility, and white wants the largest utility.
 def heuristic(board):
     sum = 0
-    for i in range(1,othelloBoard.size-1):
-        for j in range(1,othelloBoard.size-1):
+    for i in range(1,8):
+        for j in range(1,8):
             # If in corner, multiply by 3
-            if i in [1, othelloBoard.size-1] and j in [1, othelloBoard.size-1]:
+            if i in [1, 8] and j in [1, 8]:
                 sum += 3*(board.array[i][j])
             # If on edge, multiply by 2
-            elif i in [1, othelloBoard.size-1] or j in [1, othelloBoard.size-1]:
+            elif i in [1, 8] or j in [1, 8]:
                 sum += 2*(board.array[i][j])
             # Otherwise, worth 1
             else:
@@ -106,6 +109,98 @@ def maxVal(board, color, plies, limit):
     return val
     
 
+
+# An implementation of the alpha-beta-search algorithm
+def alphabeta(board, color, plies):
+    
+    alpha = -100000
+    beta = 100000
+
+    
+    moves = {} # {utility : move} -- keep track of possible next moves and their utilities
+    
+    # no pruning can occur between highest max node and highest min node 
+    #  (might exclude highest value)
+    for move in board._legalMoves(color):
+        print
+        print "Starting next highest min node"
+        i = move[0]
+        j = move[1]
+        
+        # Black wants the "opposite" of the traditional minimax optimal values (because of our heuristic)
+        if color == -1:
+            val = maxValAB(board.makeMove(i,j,color), alpha, beta, color, plies, 1)
+            if val <= alpha:
+                print str(val) + " - from ROOT minVal, val < alpha *********"
+                #return move # val
+            beta = min(beta, val)
+            moves[val] = move
+        
+        # White wants traditional minimax optimal values
+        elif color == 1:
+            val = minValAB(board.makeMove(i,j,color), alpha, beta, color, plies, 1)
+            if val >= beta:
+                print str(val) + " - from ROOT maxVal, val > beta *********"
+                #return move # val
+            alpha = max(alpha, val)
+            moves[val] = move
+    
+    # no moves -- pass
+    if  len(moves) == 0:
+        return None
+        
+    if color == -1:
+        optimal = min(moves.keys()) 
+    elif color == 1:
+        optimal = max(moves.keys())
+        
+    print "Done with recursion, here are max-node choices: " + str(moves.keys())
+    print "Choosing " + str(optimal) + " which is " + str(moves[optimal])
+        
+    return moves[optimal] 
+
+
+# Recursive helper function for minimax -- for "min" nodes of game tree
+def minValAB(board, alpha, beta, color, plies, limit):
+
+    print "Starting minVal" + " " + str(alpha) + " " + str(beta)
+    
+    if len(board._legalMoves(color)) == 0 or limit == plies:
+        print "  "*limit + "minVal -- board's value is " + str(heuristic(board))
+        return heuristic(board)
+    val = 10000
+    for move in board._legalMoves(color):
+        i = move[0]
+        j = move[1]
+        val = min(val, maxValAB(board.makeMove(i,j,color), alpha, beta, color, plies, limit + 1)) 
+        if val <= alpha:
+            print "  "*limit + str(val) + " - from minVal, val < alpha"
+            return val
+        beta = min(beta, val)
+    print "  "*limit + str(val) + " - from minVal"
+    return val
+
+# Recursive helper function for minimax -- for "max" nodes of game tree
+def maxValAB(board, alpha, beta, color, plies, limit):
+    
+    print "Starting maxVal"  + " " + str(alpha) + " " + str(beta)
+    
+    if len(board._legalMoves(color)) == 0 or limit == plies:
+        print "  "*limit + "maxVal -- board's value is " + str(heuristic(board))
+        return heuristic(board)
+    val = -10000
+    for move in board._legalMoves(color):
+        i = move[0]
+        j = move[1]
+        val = max(val, minValAB(board.makeMove(i,j,color), alpha, beta, color, plies, limit + 1)) 
+        if val >= beta:
+            print "  "*limit + str(val) + " - from maxVal, val > beta"
+            return val
+        alpha = max(alpha, val)
+    print "  "*limit + str(val) + " - from maxVal"
+    return val
+    
+
 class ComputerPlayer:
     '''Computer player: chooseMove is where the action is.'''
     def __init__(self,name,color,heuristic,plies):
@@ -115,7 +210,7 @@ class ComputerPlayer:
         self.plies = plies
 
     def chooseMove(self,board):
-        best_move = minimax(board, self.color, self.plies)
+        best_move = alphabeta(board, self.color, self.plies)
         if best_move == None:
             return None
         i = best_move[0]
